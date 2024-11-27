@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>着色地图by数学建模清风</title>
+    <link rel="stylesheet" href="elementUI.min.css" />
+    <script src="echarts530.min.js"></script>
+
+    <script src="jquery.min.js"></script>
+    <script src="linq.js"></script>
+	<!-- 更改js地图模版 -->
+    <script src="NA_US_美国_usa.js"></script>  
+    <script src="vue.min.js"></script>
+    <script src="elementUI.min.js"></script>
+    <style>
+      html,
+      body,
+      #app {
+        height: 100%;
+        width: 100%;
+        padding: 0px;
+        margin: 0px;
+      }
+      #chart {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+      }
+    </style>
+  </head>
+
+   <body>
+    <div id="app">
+      <div id="chart">
+        <div id="main" @dblclick="chartDbClick"></div>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      var vm = new Vue({
+        el: "#app",
+        data: {
+          radioValue: "",
+          chartTitle: "",
+          showForm: false,
+          measures: []
+        }
+      });
+
+      function chartDbClick() {
+        vm.showForm = true;
+      }
+
+
+
+      // function formatNumWithThousands(number) {
+        // var reg = /(\d{1,3})(?=(\d{3})+(?:$|\.))/g;
+        // return (number + "").replace(reg, "$1,");
+      // }
+	  
+	  function formatNumWithThousands(number,decimals) {
+		  /*
+		  * 参数说明：
+		  * number：要格式化的数字
+		  * decimals：保留几位小数
+		  * dec_point：小数点符号
+		  * thousands_sep：千分位符号
+		  * */
+		  dec_point = ".";
+		  thousands_sep = ",";
+		  number = (number + '').replace(/[^0-9+-Ee.]/g, '');
+		  var n = !isFinite(+number) ? 0 : +number,
+		    prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
+		    sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep,
+		    dec = (typeof dec_point === 'undefined') ? '.' : dec_point,
+		    s = '',
+		    toFixedFix = function (n, prec) {
+		      var k = Math.pow(10, prec);
+		      return '' + Math.ceil(n * k) / k;
+		    };
+		  s = (prec ? toFixedFix(n, prec) : '' + Math.round(n)).split('.');
+		  var re = /(-?\d+)(\d{3})/;
+		  while (re.test(s[0])) {
+		    s[0] = s[0].replace(re, "$1" + sep + "$2");
+		  }
+		  if ((s[1] || '').length < prec) {
+		    s[1] = s[1] || '';
+		    s[1] += new Array(prec - s[1].length + 1).join('0');
+		  }
+		  return s.join(dec);
+	}
+
+//startOption
+var option ={
+  "chartWidth": 1200,
+  "chartHeigth": 800,
+  "isFullScreen": false,
+  "isSvgRender": false,
+  "backgroundColor": "transparent",
+  "title": {
+    "text": "",
+    "textAlign": "auto",
+    "textVerticalAlign": "auto",
+    "left": "center",
+    "top": "5%",
+    "textStyle": {
+      "color": "#333333",
+      "fontSize": 18
+    }
+  },
+  "toolbox": {
+    "show": true,
+    "right": 20,
+	"showTitle": true,
+    "feature": {
+      "saveAsImage": {
+	    "name":"CBP_使用本地图前请认真检查地图的完整性_因使用错误地图造成的后果请自行承担",    // 保存的文件名
+        "type":"png",
+        "title": "导出图片",
+		pixelRatio:1.5     //保存图片的分辨率比例，默认跟容器相同大小，如果需要保存更高分辨率的，可以设置为大于 1 的值，例如 2
+      }
+    }
+  },
+  "dataset": {"source": [["Name","tbvalue"],["Alaska",0.13559542],["Alabama",0.16669522],["Arkansas",0.11085320],["Arizona",0.21600032],["California",0.18516555],["Colorado",0.08739689],["Connecticut",0.20409259],["District of Columbia",null],["Delaware",0.19608362],["Florida",0.25790339],["Georgia",0.21055170],["Hawaii",0.09592133],["Iowa",0.17319431],["Idaho",0.05671958],["Illinois",0.17242682],["Indiana",0.28567292],["Kansas",0.12911284],["Kentucky",0.16475186],["Louisiana",0.09282714],["Massachusetts",0.20600341],["Maryland",0.16538786],["Maine",0.13037845],["Michigan",0.08762931],["Minnesota",0.00000000],["Missouri",0.16872652],["Mississippi",0.09579857],["Montana",0.03691274],["North Carolina",0.13867458],["North Dakota",0.03628055],["Nebraska",0.29815320],["New Hampshire",0.15903962],["New Jersey",0.22087803],["New Mexico",0.11480506],["Nevada",0.21483581],["New York",0.15700793],["Ohio",0.24602070],["Oklahoma",0.10148366],["Oregon",0.09377616],["Pennsylvania",0.15133238],["Rhode Island",0.18315396],["South Carolina",0.11225431],["South Dakota",0.04275034],["Tennessee",0.13400892],["Texas",0.15065984],["Utah",0.09779722],["Virginia",0.12960505],["Vermont",null],["Washington",0.11414113],["Wisconsin",0.06221879],["West Virginia",0.06499930],["Wyoming",0.14873297]]},
+  "tooltip": {   // tooltip:提示框组件，用于配置鼠标滑过或点击图表时的显示框。
+    "textStyle": {
+      "fontSize": 12.0   // 鼠标划到地图界面时，字体大小
+    },
+    "trigger": "item",
+    "formatter": //startFunction
+function (paras) { 
+	var Decimal_places = 2;
+	if (paras.data[1] != null){
+		if (paras.data[1] < 1)
+			Decimal_places = 6;
+		else if (paras.data[1] < 10)
+			Decimal_places = 4;
+		return 'Address_Name：'+paras.data[0] +'<br/>'+'Value：'+formatNumWithThousands(Number((paras.data[1]/1)),Decimal_places)}
+	else 
+		return 'Address_Name：'+paras.data[0] +'<br/>'+'Value：'+"NaN";
+}
+// 鼠标划到地图界面时，交互式提示上面显示的数据保留的小数点位数
+
+//endFunction
+  },
+  "series": [
+    {
+      "name": "系列",
+      "type": "map",
+      "roam": true, //是否支持地图缩放平移
+      "map": "CustomMap",
+      "labelLayout": {  // 是否隐藏重叠的数据标签 ["""labelLayout""","""labelLayoutRemove"""]
+        "hideOverlap": true
+      },
+      "label": {
+        "show":true, //  是否显示国家或者地区的标签
+        "fontSize": 12,  // 国家或者地区的标签的字体大小
+        "formatter": //startFunction
+                function (paras) {
+                  if (paras.data != null) {
+					var show_label_if_null = false;  // 缺少某个地区的数据时，是否在地图上仍然显示该地区的名称
+					var show_label_value = false;  // 是否在地图上同时显示该地区的数值
+					var Decimal_places = 0;  // 如果显示该地区的数值时，保留几位小数点
+					if ((show_label_if_null == true) && (show_label_value == true)){
+						if (paras.data[1] != null)
+							return paras.data[0] +'\n'+formatNumWithThousands(Number((paras.data[1]/1)),Decimal_places);
+						else 
+							return paras.data[0] +'\n'+"NaN";
+					}
+					else if ((show_label_if_null == true) && (show_label_value == false)){
+						return paras.data[0] ;
+					}
+					else if ((show_label_if_null == false) && (show_label_value == false)){
+						return paras.data[1] != null ? paras.data[0] : "";
+					}
+					else {
+						if (paras.data[1] != null)
+							return (paras.data[1] != null ? paras.data[0] : "") +'\n'+formatNumWithThousands(Number((paras.data[1]/1)),Decimal_places);
+						else 
+							return "";
+					}
+                  }
+                }
+              //endFunction
+      }
+    }
+  ],
+  "visualMap": {
+    "show":true,
+    "orient": "vertical",
+    "left": "10%",
+    "bottom": "10%",
+    "precision": 0.0,
+    "itemHeight": 140.0,
+    "align": "left",
+    "type": "continuous",  // piecewise
+    "min":0,
+    "max":0.29815,
+    "realtime": true,
+	// 离散型的没有下面的
+	"text": [ "High", "Low" ],
+	// 离散型的没有上面的
+    "calculable": true,
+
+    "inRange": {
+      "color": ["#FFFFD9","#EDF8B1","#C7E9B4","#7FCDBB","#41B6C4","#1D91C0","#225EA8","#0C2C84"]},
+	// 下面是离散的区间范围
+	
+	// 上面是离散的区间范围
+    "textStyle": {
+      "fontSize": 14
+    },
+	"showLabel": true,
+    "splitNumber":8}
+};
+//endOption
+
+      //先处理下全屏与否
+      if (option.isFullScreen) {
+        $("#main").height("100%");
+        $("#main").width("100%");
+      } else {
+        $("#main").height(option.chartHeigth);
+        $("#main").width(option.chartWidth);
+      }
+      //实例化对象
+      var myChart;
+      if (!option.isSvgRender) {
+        myChart = echarts.init(document.getElementById("main"));
+      } else {
+        myChart = echarts.init(document.getElementById("main"), null, { renderer: "svg" });
+      }
+
+      //绑定echart的resize事件
+      windowResizeEvent(() => myChart.resize());
+
+      function windowResizeEvent(callback) {
+        window.onresize = function () {
+          var target = this;
+          if (target.resizeFlag) {
+            clearTimeout(target.resizeFlag);
+          }
+
+          target.resizeFlag = setTimeout(function () {
+            callback();
+            target.resizeFlag = null;
+          }, 100);
+        };
+      }
+
+      var srcSource = option.dataset.source;
+      var srcTooltipFormatter = option.tooltip.formatter.toString();
+      var titlePlaceholder = "如有需要可输入标题，指标列名称可用{变量}表示";
+      var originMeasureName = srcSource[0].slice(-1);
+      var originMinValue = option.visualMap.min;
+      var originMaxValue = option.visualMap.max;
+
+     //如果引用了cp列,将对地图底图的数据标签cp属性进行设置
+      if (srcSource[0].indexOf("cp") != -1) {
+        var cpIndex = srcSource[0].indexOf("cp");
+        var features = echarts.getMap("CustomMap").geoJson.features;
+        for (let index = 0; index < features.length; index++) {
+          var areaName = features[index].properties.name;
+          for (let i = 1; i < srcSource.length; i++) {
+            if (srcSource[i][0] == areaName) {
+              var cpStr = srcSource[i][cpIndex];
+              if (cpStr != null && cpStr != "") {
+                var longlan = cpStr.split(",");
+                features[index].properties.cp = longlan.map(Number);
+
+              }
+              break; //某features的feature在srcSource循环中region已找到了，跳出当前循环
+            }
+          }
+        }
+      }
+
+      //如果地图数据包里有cp(字符串非数组)或center字段,将其设置为ECharts所调用的cp属性
+      var goejson = echarts.getMap("CustomMap").geoJson;
+      var features = goejson.features;
+        for (let index = 0; index < features.length; index++) {
+          var cp = features[index].properties.cp;
+          if (cp != null && cp != "") {
+            if (!Array.isArray(cp)) {
+              var longlan = cp.split(",");
+              features[index].properties.cp = longlan.map(Number);
+            }
+          } else {
+            var center = features[index].properties.center;
+            if (center != null && center != "") {
+              if (Array.isArray(center)) {
+                features[index].properties.cp = center;
+              } else {
+                var longlan = center.split(",");
+                features[index].properties.cp = longlan.map(Number);
+              }
+            }
+          }
+        }
+      // }
+
+      myChart.setOption(option);
+
+      //换了个5.1的echarts版本，bug修复了
+      var fontSize = option.series[0].label.fontSize;
+      //这里可能前端交互时把它删除了labelLayout节点，因为当它为false时，仍然会出现放大缩小字体位置错误问题
+      if (option.series[0].labelLayout && option.series[0].labelLayout.hideOverlap) {
+        myChart.on("georoam", function (params) {
+          var zoom = myChart.getOption().series[0].zoom;
+          var newFontSize = fontSize * zoom;
+          option.series[0].label.fontSize = newFontSize;
+          myChart.setOption(option);
+        });
+      }
+
+      //收集指标列信息,序号/最小/最大值
+      var headers = srcSource[0];
+      var sourceData = Enumerable.from(srcSource).skip(1);
+      //从第2列开始
+      var colInfos = [];
+      for (let index = 1; index < headers.length; index++) {
+        const element = headers[index];
+        if (sourceData.all((s) => typeof s[index] === "number")) {
+          colInfos.push({
+            colIndex: index,
+            name: headers[index],
+            minValue: sourceData.min((s) => s[index]),
+            maxValue: sourceData.max((s) => s[index])
+          });
+        }
+      }
+
+
+
+      //初始值赋值Vue
+      var colNames = colInfos.map((s) => s.name);
+      vm.measures = colNames.slice(-1).concat(colNames.slice(0, colNames.length - 1));
+      vm.radioValue = colInfos.slice(-1)[0].name;
+      vm.chartTitle = option.title.text;
+    </script>
+  </body>
+</html>
